@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SOLO-LEVELING X MINI: A stylish WhatsApp bot interface for seamless automation.">
+    <meta name="keywords" content="WhatsApp bot, SOLO-LEVELING X MINI, automation, RUKSHAN & DINU">
+    <title>SOLO-LEVELING X MINI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Orbitron:wght@400;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <style>
+        [data-theme="dark"] {
+            --primary: #1E3A8A; /* Deep blue */
+            --secondary: #3B82F6; /* Light blue for accents */
+            --glass: rgba(59, 130, 246, 0.1);
+            --bg-color: radial-gradient(circle, #1E3A8A, #1E293B);
+            --text-color: #BFDBFE; /* Light blue text for contrast */
+            --overlay: rgba(0, 0, 0, 0.6);
+        }
+
+        [data-theme="light"] {
+            --primary: #3B82F6; /* Light blue */
+            --secondary: #1E3A8A; /* Deep blue */
+            --glass: rgba(59, 130, 246, 0.3);
+            --bg-color: linear-gradient(135deg, #3B82F6, #93C5FD);
+            --text-color: #1E3A8A; /* Deep blue text */
+            --overlay: rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            position: relative;
+            transition: background 0.8s ease, color 0.4s ease;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        #loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--secondary);
+            border-top: 5px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        #loader p {
+            margin-top: 1.2rem;
+            font-size: 1.3rem;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--secondary);
+            text-shadow: 0 0 8px var(--secondary);
+        }
+
+        #neon-icon {
+            width: 70px;
+            height: 70px;
+            opacity: 0;
+            filter: drop-shadow(0 0 12px var(--secondary));
+        }
+
+        canvas#particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            opacity: 0.4;
+        }
+
+        nav {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 2px solid var(--secondary);
+            box-shadow: 0 0 12px var(--secondary);
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--secondary);
+            text-shadow: 0 0 6px var(--secondary);
+            padding-left: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.1);
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 1rem;
+            padding-right: 1.2rem;
+        }
+
+        .menu-btn, .sound-btn {
+            font-size: 1.3rem;
+            background: var(--glass);
+            border: 1px solid var(--secondary);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-btn:hover, .sound-btn:hover {
+            color: var(--secondary);
+            transform: scale(1.15);
+            box-shadow: 0 0 10px var(--secondary);
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 80%;
+            max-width: 320px;
+            height: 100%;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            padding: 2.2rem;
+            transition: left 0.4s ease;
+            z-index: 2000;
+            border-right: 2px solid var(--secondary);
+        }
+
+        .side-menu.active {
+            left: 0;
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .menu-header h3 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--secondary);
+            text-shadow: 0 0 6px var(--secondary);
+        }
+
+        .close-btn {
+            font-size: 1.6rem;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--secondary);
+        }
+
+        .menu-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1.2rem;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            background: var(--glass);
+            border: 1px solid var(--secondary);
+        }
+
+        .menu-links a:hover {
+            color: var(--secondary);
+            background: rgba(59, 130, 246, 0.3);
+            transform: translateX(14px);
+            box-shadow: 0 0 14px var(--secondary);
+        }
+
+        .menu-links a.active {
+            background: var(--secondary);
+            color: var(--primary);
+            box-shadow: 0 0 14px var(--secondary);
+        }
+
+        .hero {
+            height: calc(100vh - 70px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1.2rem;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.2), transparent);
+            z-index: -1;
+        }
+
+        .hero h1 {
+            font-size: 2rem;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--secondary);
+            text-shadow: 0 0 6px var(--secondary);
+            margin-bottom: 1.2rem;
+            min-height: 2.4rem;
+            padding: 0 1.2rem;
+        }
+
+        .hero p {
+            font-size: 1rem;
+            max-width: 90%;
+            margin-bottom: 1.8rem;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards 5s;
+        }
+
+        .profile-img {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 3px solid var(--secondary);
+            padding: 3px;
+            background: #111;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .profile-img:hover {
+            transform: scale(1.1) rotate(2deg);
+            border-color: var(--secondary);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.7);
+        }
+
+        .audio-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .audio-btn {
+            padding: 10px 20px;
+            background: var(--glass);
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+            border-radius: 30px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .audio-btn:hover {
+            transform: scale(1.08);
+            background: var(--secondary);
+            color: var(--primary);
+            box-shadow: 0 0 12px var(--secondary);
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .volume-control input {
+            width: 100px;
+        }
+
+        .about-section {
+            padding: 2.2rem 1.2rem;
+            background: var(--glass);
+            text-align: center;
+            width: 100%;
+        }
+
+        .about-section h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.6rem;
+            color: var(--secondary);
+            text-shadow: 0 0 6px var(--secondary);
+            margin-bottom: 1.2rem;
+        }
+
+        .about-section p {
+            font-size: 1rem;
+            max-width: 90%;
+            margin: 0 auto 1.8rem;
+        }
+
+        .about-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 15px;
+            border: 2px solid var(--secondary);
+            box-shadow: 0 0 12px var(--secondary);
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .about-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 18px var(--secondary);
+        }
+
+        .connect-section {
+            padding: 2.2rem 1.2rem;
+            background: var(--glass);
+            text-align: center;
+            width: 100%;
+        }
+
+        .connect-section h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.6rem;
+            color: var(--secondary);
+            text-shadow: 0 0 6px var(--secondary);
+            margin-bottom: 1.2rem;
+        }
+
+        .connect-section p {
+            font-size: 1rem;
+            max-width: 90%;
+            margin: 0 auto 1.8rem;
+        }
+
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.2rem;
+            max-width: 90%;
+            margin: 0 auto;
+        }
+
+        .connect-btn {
+            padding: 12px 24px;
+            background: var(--glass);
+            color: var(--secondary);
+            text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            border-radius: 30px;
+            border: 2px solid var(--secondary);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 12px var(--secondary);
+            min-width: 200px;
+            justify-content: center;
+        }
+
+        .connect-btn:hover {
+            transform: scale(1.08);
+            background: var(--secondary);
+            color: var(--primary);
+            box-shadow: 0 0 18px var(--secondary);
+        }
+
+        .channel-section {
+            padding: 2.2rem 1.2rem;
+            background: var(--glass);
+            text-align: center;
+            width: 100%;
+        }
+
+        .channel-section h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.6rem;
+            color: var(--secondary);
+            text-shadow: 0 0 6px var(--secondary);
+            margin-bottom: 1.2rem;
+        }
+
+        .channel-section p {
+            font-size: 1rem;
+            max-width: 90%;
+            margin: 0 auto 1.8rem;
+        }
+
+        .pair-section {
+            padding: 2.2rem 1.2rem;
+            background: var(--glass);
+            text-align: center;
+            width: 100%;
+        }
+
+        .pair-section h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.6rem;
+            color: var(--secondary);
+            text-shadow: 0 0 6px var(--secondary);
+            margin-bottom: 1.2rem;
+        }
+
+        .pair-section p {
+            font-size: 1rem;
+            max-width: 90%;
+            margin: 0 auto 1.8rem;
+        }
+
+        .error-section {
+            padding: 2.2rem 1.2rem;
+            background: var(--glass);
+            text-align: center;
+            width: 100%;
+        }
+
+        .error-section h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.6rem;
+            color: var(--secondary);
+            text-shadow: 0 0 6px var(--secondary);
+            margin-bottom: 1.2rem;
+        }
+
+        .error-section p {
+            font-size: 1rem;
+            max-width: 90%;
+            margin: 0 auto 1.8rem;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            background: var(--glass);
+            border: 1px solid var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 10px var(--secondary);
+        }
+
+        .theme-toggle i {
+            font-size: 1.2rem;
+            color: var(--secondary);
+        }
+
+        footer {
+            padding: 1.2rem;
+            text-align: center;
+            background: var(--glass);
+            border-top: 1px solid var(--secondary);
+            font-family: 'Montserrat', sans-serif;
+            color: var(--secondary);
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 12px var(--secondary); }
+            50% { box-shadow: 0 0 18px var(--secondary); }
+            100% { box-shadow: 0 0 12px var(--secondary); }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 1.6rem;
+            }
+
+            .hero p {
+                font-size: 0.9rem;
+            }
+
+            .about-section h2, .connect-section h2, .channel-section h2, .pair-section h2, .error-section h2 {
+                font-size: 1.4rem;
+            }
+
+            .profile-img, .about-img {
+                width: 100px;
+                height: 100px;
+            }
+
+            .menu-links a {
+                font-size: 1rem;
+                padding: 12px 16px;
+            }
+
+            .connect-btn {
+                min-width: 180px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>LOADING SOLO-LEVELING X MINI.......</p>
+        <svg id="neon-icon" viewBox="0 0 24 24">
+            <path fill="var(--secondary)" d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.5l6.5 3v6l-6.5 3-6.5-3v-6L12 4.5z"/>
+        </svg>
+    </div>
+
+    <canvas id="particleCanvas"></canvas>
+    <nav>
+        <div class="logo">SOLO-LEVELING X MINI</div>
+        <div class="nav-controls">
+            <button class="sound-btn" title="Toggle Sound" aria-label="Toggle background audio">
+                <i class="fas fa-volume-up"></i>
+            </button>
+            <button class="menu-btn" aria-label="Open menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div class="side-menu">
+        <div class="menu-header">
+            <h3>Menu</h3>
+            <button class="close-btn" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="menu-links">
+            <a href="#home" class="nav-link"><i class="fas fa-home"></i> Home</a>
+            <a href="#about" class="nav-link"><i class="fas fa-info-circle"></i> About</a>
+            <a href="#pair" class="nav-link"><i class="fas fa-link"></i> Pair Sites</a>
+            <a href="#channels" class="nav-link"><i class="fab fa-whatsapp"></i> Channels</a>
+            <a href="#error" class="nav-link"><i class="fas fa-exclamation-circle"></i> Contact</a>
+        </div>
+    </div>
+
+    <audio id="background-audio" src="https://files.catbox.moe/lv31gq.mp3"></audio>
+
+    <section class="hero" id="home">
+        <img src="https://files.catbox.moe/vuifao.jpeg" alt="Profile" class="profile-img">
+        <h1 id="typing-text"></h1>
+        <p>RUKSHAN & DINU Developer - JAPANESE LOVERS and KORIYA RUKA</p>
+        <div class="audio-controls">
+            <div>
+                <button class="audio-btn" id="play-btn"><i class="fas fa-play"></i> Play</button>
+                <button class="audio-btn" id="pause-btn"><i class="fas fa-pause"></i> Pause</button>
+                <button class="audio-btn" id="next-btn"><i class="fas fa-forward"></i> Next</button>
+            </div>
+            <div class="volume-control">
+                <i class="fas fa-volume-up"></i>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="1">
+            </div>
+        </div>
+    </section>
+
+    <section class="about-section" id="about">
+        <h2>🌌 𝗦𝗢𝗟𝗢 𝗟𝗘𝗩𝗘𝗟𝗜𝗡𝗚 𝗫 𝗠𝗜𝗡𝗜 𝗔𝗕𝗢𝗨𝗧 🌌</h2>
+        <img src="https://files.catbox.moe/7kuu83.jpeg" alt="About SOLO-LEVELING X MINI" class="about-img">
+        <p>SOLO-LEVELING X MINI is a cutting-edge WhatsApp bot designed by RUKSHAN & DINU, passionate developers with a love for Japanese and Korean culture. Inspired by the dynamic world of Solo Leveling, this bot offers seamless automation for tasks like music streaming, content sharing, and more. Our mission is to blend creativity with technology, delivering a lightweight, high-performance bot that enhances your digital experience. Join us in exploring the future of automation with a touch of anime-inspired flair!</p>
+    </section>
+
+    <section class="pair-section" id="pair">
+        <h2>🌠 𝗣𝗔𝗜𝗥 𝗦𝗜𝗧𝗘𝗦  📲</h2>
+        <p>Connect to our primary pair sites to link your bot.</p>
+        <div class="button-container">
+            <a href="https://solo-leveling-free-bot-1-762e34c533e1.herokuapp.com/" class="connect-btn"><i class="fas fa-link"></i> LINK TO SITE 1</a>
+        </div>
+        <img src="https://files.catbox.moe/wlan6q.jpeg" alt="Pair Site Image" class="about-img" style="margin-top: 1.5rem;">
+    </section>
+
+    <section class="channel-section" id="channels">
+        <h2>𝗖𝗛𝗔𝗡𝗡𝗘𝗟𝗦 🔊</h2>
+        <p>Stay updated and get support through our official channels.</p>
+        <div class="button-container">
+            <a href="https://whatsapp.com/channel/0029Vb6bvvP9cDDc8TRTzm41" class="connect-btn"><i class="fab fa-whatsapp"></i> LEGION OF DOOM MINE</a>
+            <a href="https://whatsapp.com/channel/0029VbAWWH9BFLgRMCXVlU38" class="connect-btn"><i class="fab fa-whatsapp"></i> MINI BOT SUPPORT</a>
+            <a href="https://t.me/legion_of_doom_2050" class="connect-btn"><i class="fab fa-telegram"></i> TELEGRAM</a>
+        </div>
+    </section>
+
+    <section class="error-section" id="error">
+        <h2>𝗖𝗢𝗡𝗧𝗔𝗖𝗧 𝗨𝗦 🍃</h2>
+        <p>If you encounter any issues or have questions about Solo-Leveling x Mini Bot, please reach out to us via the WhatsApp channel below. Your feedback helps us improve the bot and ensure a smooth experience.</p>
+        <div class="button-container">
+            <a href="https://whatsapp.com/channel/0029VbAWWH9BFLgRMCXVlU38" class="connect-btn"><i class="fab fa-whatsapp"></i> Contact Support</a>
+        </div>
+    </section>
+
+    <footer>
+        POWERED BY SOLO-LEVELING X MINI
+    </footer>
+
+    <div class="theme-toggle" aria-label="Toggle theme">
+        <i class="fas fa-moon"></i>
+    </div>
+
+    <video id="background-video" autoplay loop muted style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -3; opacity: 0.3;">
+        <source src="https://files.catbox.moe/52py80.mp4" type="video/mp4">
+    </video>
+
+    <script>
+        const tracks = [
+            'https://files.catbox.moe/lv31gq.mp3',
+            'https://files.catbox.moe/kxb36b.mp3',
+            'https://files.catbox.moe/s5eivo.mp3'
+        ];
+        let currentTrackIndex = 0;
+
+        function typeText() {
+            const texts = [
+                "SOLO-LEVELING X MINI", "RUKSHAN & DINU", "JAPANESE LOVERS", "KORIYA RUKA", "POWERED BY X MINI"
+            ];
+            const typingElement = document.querySelector('#typing-text');
+            if (!typingElement) return;
+            let textIndex = 0;
+            let charIndex = 0;
+            let isTyping = true;
+
+            function updateText() {
+                const currentText = texts[textIndex];
+                typingElement.style.borderRight = '3px solid var(--secondary)';
+
+                if (isTyping) {
+                    if (charIndex <= currentText.length) {
+                        typingElement.textContent = currentText.substring(0, charIndex);
+                        charIndex++;
+                        setTimeout(updateText, 100);
+                    } else {
+                        typingElement.style.borderRight = 'none';
+                        setTimeout(() => {
+                            isTyping = false;
+                            charIndex--;
+                            updateText();
+                        }, 1000);
+                    }
+                } else {
+                    if (charIndex >= 0) {
+                        typingElement.textContent = currentText.substring(0, charIndex);
+                        charIndex--;
+                        setTimeout(updateText, 50);
+                    } else {
+                        isTyping = true;
+                        charIndex = 0;
+                        textIndex = (textIndex + 1) % texts.length;
+                        setTimeout(updateText, 500);
+                    }
+                }
+            }
+
+            updateText();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Loader
+            const loader = document.getElementById('loader');
+            const neonIcon = document.getElementById('neon-icon');
+            if (loader && neonIcon) {
+                gsap.to(neonIcon, {
+                    opacity: 1,
+                    scale: 1.2,
+                    duration: 0.5,
+                    ease: "power2.out",
+                    repeat: 2,
+                    yoyo: true,
+                });
+                gsap.to(loader, {
+                    opacity: 0,
+                    duration: 0.5,
+                    delay: 1,
+                    onComplete: () => loader.classList.add('hidden'),
+                });
+            }
+
+            // Audio Controls
+            const audio = document.getElementById('background-audio');
+            const playBtn = document.getElementById('play-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const volumeSlider = document.getElementById('volume-slider');
+            const soundBtn = document.querySelector('.sound-btn');
+            let isMuted = false;
+
+            if (audio && playBtn && pauseBtn && nextBtn && volumeSlider && soundBtn) {
+                audio.src = tracks[currentTrackIndex];
+
+                playBtn.addEventListener('click', () => {
+                    audio.play().catch(() => {
+                        document.addEventListener('click', () => audio.play(), { once: true });
+                    });
+                });
+
+                pauseBtn.addEventListener('click', () => {
+                    audio.pause();
+                });
+
+                nextBtn.addEventListener('click', () => {
+                    currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+                    audio.src = tracks[currentTrackIndex];
+                    audio.play().catch(() => {
+                        document.addEventListener('click', () => audio.play(), { once: true });
+                    });
+                });
+
+                volumeSlider.addEventListener('input', () => {
+                    audio.volume = volumeSlider.value;
+                });
+
+                soundBtn.addEventListener('click', () => {
+                    isMuted = !isMuted;
+                    audio.muted = isMuted;
+                    soundBtn.innerHTML = isMuted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+                });
+
+                audio.play().catch(() => {
+                    document.addEventListener('click', () => audio.play(), { once: true });
+                });
+            }
+
+            // Menu
+            const menuBtn = document.querySelector('.menu-btn');
+            const sideMenu = document.querySelector('.side-menu');
+            const closeBtn = document.querySelector('.close-btn');
+            const navLinks = document.querySelectorAll('.nav-link');
+            if (menuBtn && sideMenu && closeBtn) {
+                menuBtn.addEventListener('click', () => {
+                    sideMenu.classList.add('active');
+                });
+                closeBtn.addEventListener('click', () => {
+                    sideMenu.classList.remove('active');
+                });
+                document.addEventListener('click', (e) => {
+                    if (!sideMenu.contains(e.target) && !menuBtn.contains(e.target)) {
+                        sideMenu.classList.remove('active');
+                    }
+                });
+                navLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        link.classList.add('active');
+                        sideMenu.classList.remove('active');
+                    });
+                });
+            }
+
+            // Theme toggle
+            const themeToggle = document.querySelector('.theme-toggle');
+            let isDark = true;
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    isDark = !isDark;
+                    document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                    themeToggle.innerHTML = isDark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+                    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                });
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme) {
+                    document.body.setAttribute('data-theme', savedTheme);
+                    isDark = savedTheme === 'dark';
+                    themeToggle.innerHTML = isDark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+                }
+            }
+
+            // Particle Animation
+            const canvas = document.getElementById('particleCanvas');
+            const ctx = canvas?.getContext('2d');
+            if (canvas && ctx) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                const particles = [];
+                const particleCount = 100;
+
+                class Particle {
+                    constructor() {
+                        this.x = Math.random() * canvas.width;
+                        this.y = Math.random() * canvas.height;
+                        this.size = Math.random() * 5 + 1;
+                        this.speedX = Math.random() * 2 - 1;
+                        this.speedY = Math.random() * 2 - 1;
+                    }
+
+                    update() {
+                        this.x += this.speedX;
+                        this.y += this.speedY;
+
+                        if (this.size > 0.2) this.size -= 0.1;
+
+                        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                    }
+
+                    draw() {
+                        ctx.fillStyle = 'rgba(59, 130, 246, 0.8)';
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                function initParticles() {
+                    for (let i = 0; i < particleCount; i++) {
+                        particles.push(new Particle());
+                    }
+                }
+
+                function animateParticles() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    for (let i = 0; i < particles.length; i++) {
+                        particles[i].update();
+                        particles[i].draw();
+
+                        for (let j = i; j < particles.length; j++) {
+                            const dx = particles[i].x - particles[j].x;
+                            const dy = particles[i].y - particles[j].y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            if (distance < 100) {
+                                ctx.beginPath();
+                                ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)';
+                                ctx.lineWidth = 1;
+                                ctx.moveTo(particles[i].x, particles[i].y);
+                                ctx.lineTo(particles[j].x, particles[j].y);
+                                ctx.stroke();
+                            }
+                        }
+
+                        if (particles[i].size <= 0.2) {
+                            particles.splice(i, 1);
+                            i--;
+                            particles.push(new Particle());
+                        }
+                    }
+                    requestAnimationFrame(animateParticles);
+                }
+
+                initParticles();
+                animateParticles();
+
+                window.addEventListener('resize', () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                });
+            }
+
+            // Start typing effect
+            typeText();
+        });
+    </script>
+</body>
+  </html>
